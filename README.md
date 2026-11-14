@@ -40,12 +40,12 @@ python3 -m http.server 5173
 
 **자기 담당 파일만 수정한다.** 다른 사람 파일을 고쳐야 하면 담당자에게 요청.
 
-| 담당 | 역할 | 소유 파일 | 브랜치 |
-|---|---|---|---|
-| **A** | 통합·흐름·배포 | `index.html`, `js/main.js`, `manifest.webmanifest`, `README.md`, `AGENTS.md` | `main` (머지 담당) |
-| **B** | 화면 디자인·자격증 | `style.css`, `js/certificate.js` | `feat/ui` |
-| **C** | 응원 도구(미니게임) | `js/tools/**`, `js/rope.js` | `feat/tools` |
-| **D** | 이펙트·사운드·카메라·점수 | `js/fx.js`, `js/camera.js`, `js/score.js` | `feat/fx` |
+| 담당 | 역할 | 소유 파일 |
+|---|---|---|
+| **A** | 통합·흐름·배포 | `index.html`, `js/main.js`, `manifest.webmanifest`, `README.md`, `AGENTS.md` |
+| **B** | 화면 디자인·자격증 | `style.css`, `js/certificate.js` |
+| **C** | 응원 도구(미니게임) | `js/tools/**`, `js/rope.js` |
+| **D** | 이펙트·사운드·카메라·점수 | `js/fx.js`, `js/camera.js`, `js/score.js` |
 
 ```
 index.html            화면(접수/팀/HUD/성적표/자격증) 마크업           A
@@ -96,11 +96,47 @@ theme.accent                               // 응원팀 색
 
 ## 협업 규칙
 
-1. 시작 전 `git pull origin main`, 작업은 자기 브랜치에서.
-2. 20~30분마다 작은 PR → A가 바로 머지. 머지 후 각자 `git pull origin main`.
-3. 다른 사람 파일 수정 금지. 필요하면 담당자에게 요청하거나 A와 상의.
-4. 공통 약속(위 인터페이스)을 바꿀 때만 팀 공지.
-5. **종료 45분 전부터 기능 추가 금지**. 버그 수정·배포·시연 준비만.
+1. 작업마다 **자기 브랜치**를 만든다. 이름은 `아이디/번호/기능` (예: `yuni/3/sponge-squash`).
+   번호는 각자 작업 순번(또는 이슈 번호), 기능은 영어 소문자-하이픈.
+2. 머지 전에 **main을 rebase해서 내 브랜치를 최신화**하고, 겹치는 부분은 내가 고친다.
+3. 최신화가 끝나면 **main에 바로 머지**한다(fast-forward만, 머지 커밋 없이 일직선 히스토리).
+4. 다른 사람 파일 수정 금지. 필요하면 담당자에게 요청.
+5. 공통 약속(위 인터페이스)을 바꿀 때만 팀 공지.
+6. 브랜치는 작게, 자주(20~30분 단위) 머지. 오래 들고 있을수록 충돌이 커진다.
+7. **종료 45분 전부터 기능 추가 금지**. 버그 수정·배포·시연 준비만.
+
+### 작업 순서 (명령어)
+
+```bash
+# 1) 최신 main에서 브랜치 생성
+git switch main
+git pull origin main
+git switch -c yuni/3/sponge-squash
+
+# 2) 작업 · 커밋
+git add js/tools/sponge.js
+git commit -m "[C] 스펀지 흔들 때 찌그러짐 추가"
+
+# 3) main 기준으로 rebase (내 브랜치 최신화)
+git fetch origin
+git rebase origin/main
+#   충돌 나면: 파일 고치기 → git add <파일> → git rebase --continue
+#   되돌리고 싶으면: git rebase --abort
+
+# 4) 동작 확인 (python3 -m http.server 5173, 콘솔 오류 없는지)
+
+# 5) main에 바로 머지 후 푸시
+git switch main
+git pull origin main
+git merge --ff-only yuni/3/sponge-squash
+git push origin main
+
+# 6) 다 쓴 브랜치 정리
+git branch -d yuni/3/sponge-squash
+```
+
+- 5)에서 `--ff-only`가 실패하거나 `push`가 거절되면, 그 사이 누가 먼저 머지한 것. 내 브랜치로 돌아가 3)부터 다시.
+- 브랜치를 원격에 백업해 뒀다면 rebase 후에는 `git push --force-with-lease origin <브랜치>` (main에는 절대 force push 금지).
 
 AI(ChatGPT/Codex/Claude)로 작업할 때는 [AGENTS.md](AGENTS.md)를 함께 주고, 수정 가능한 경로를 명시할 것.
 

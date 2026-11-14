@@ -34,3 +34,12 @@
 - 변경은 작게. 한 번에 한 기능.
 - 끝나면 `python3 -m http.server 5173`으로 열어 콘솔 오류가 없는지 확인.
 - 커밋 메시지는 `[담당] 무엇을 했는지` 형식. 예: `[C] 스펀지 흔들기 판정 완화`
+
+## 5. Git 규칙 (git 명령을 대신 실행하거나 안내할 때)
+
+- 브랜치 이름: `아이디/번호/기능` (예: `yuni/3/sponge-squash`). main에서 직접 작업하지 않는다.
+- 머지 전 최신화는 **rebase**: `git fetch origin && git rebase origin/main`. `git merge main`으로 최신화하지 않는다.
+- rebase 충돌은 담당 파일 기준으로 해결한다. 다른 담당자 파일에서 충돌이 나면 임의로 고르지 말고 사람에게 알린다.
+- main 반영은 fast-forward만: `git switch main && git pull origin main && git merge --ff-only <브랜치> && git push origin main`.
+- `--ff-only`나 push가 실패하면 rebase부터 다시 한다.
+- main에 force push 금지. 개인 브랜치는 rebase 후 `--force-with-lease`만 허용.
