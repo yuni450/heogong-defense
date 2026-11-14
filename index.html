@@ -42,27 +42,22 @@
   <!-- 1. 시험 접수 -->
   <section id="s-intro" class="screen active">
     <div class="card">
-      <div class="badge">국가공인*</div>
-      <h1>🏀 허공수비대</h1>
-      <p class="sub">허공 수비 자격시험</p>
-      <p class="quote">“선수들은 코트에서 수비하고,<br>우리는 관중석에서 수비한다!”</p>
+      <h1>허공수비대</h1>
       <label class="field">응시자 이름
-        <input id="name" maxlength="10" placeholder="이름을 입력하세요" autocomplete="off">
+        <input id="name" maxlength="10" autocomplete="off">
       </label>
-      <button id="btn-apply" class="primary">시험 접수하기</button>
+      <button id="btn-apply" class="primary">응원팀 선택</button>
       <p id="best" class="fine"></p>
-      <p class="fine">카메라로 경기장이나 TV를 비춰 주세요.<br>* 유머를 위한 가상 설정이며 실제 공인 자격증이 아닙니다.</p>
     </div>
   </section>
 
   <!-- 2. 응원팀 선택 -->
   <section id="s-team" class="screen">
     <div class="card">
-      <p class="step">STEP 1</p>
       <h2>응원팀 선택</h2>
       <div id="league-tabs" role="tablist" aria-label="종목 선택">
-        <button id="tab-kbl" type="button" role="tab" data-league="kbl" aria-selected="true" aria-controls="teams">🏀 농구 KBL</button>
-        <button id="tab-kbo" type="button" role="tab" data-league="kbo" aria-selected="false" aria-controls="teams">⚾ 야구 KBO</button>
+        <button id="tab-kbl" type="button" role="tab" data-league="kbl" aria-selected="true" aria-controls="teams">농구</button>
+        <button id="tab-kbo" type="button" role="tab" data-league="kbo" aria-selected="false" aria-controls="teams">야구</button>
       </div>
       <div id="teams" class="grid" role="tabpanel" aria-labelledby="tab-kbl"></div>
       <button id="btn-team-back" class="ghost">이름 입력으로</button>
@@ -77,7 +72,7 @@
         <button id="btn-change-team" class="pill">구단 변경</button>
       </div>
       <div class="hud-row">
-        <div id="hud-round" class="pill"></div>
+        <div id="hud-round" class="pill" aria-live="polite"></div>
         <div id="hud-score" class="pill strong">0점</div>
       </div>
       <div id="meter" class="meter">
@@ -87,8 +82,7 @@
     </div>
     <div class="hud-bottom">
       <div id="hud-hint" class="hud-hint"></div>
-      <div id="shot-outcome" class="outcome-controls" role="group" aria-labelledby="outcome-title">
-        <div id="outcome-title" class="outcome-title" aria-live="polite"></div>
+      <div id="shot-outcome" class="outcome-controls" role="group" aria-label="경기 결과">
         <div class="outcome-buttons">
           <button type="button" data-made="yes" class="outcome-made">성공</button>
           <button type="button" data-made="no" class="outcome-missed">실패</button>
@@ -101,11 +95,10 @@
   <!-- 4. 성적표 -->
   <section id="s-result" class="screen">
     <div class="card">
-      <p class="step">허공 수비 실기시험 성적표</p>
+      <h2>성적표</h2>
       <div id="res-grade" class="grade"></div>
       <dl id="stats" class="stats"></dl>
       <ol id="rounds" class="rounds"></ol>
-      <p id="cert-status" class="cert-status" aria-live="polite"></p>
       <button id="btn-cert" class="primary">자격증 발급받기</button>
       <button id="btn-retry" class="ghost">같은 구단으로 재응시</button>
       <button id="btn-result-team" class="ghost">다른 구단 선택</button>
@@ -117,9 +110,9 @@
   <section id="s-cert" class="screen">
     <div class="card cert-card">
       <img id="cert-img" alt="허공 수비 자격증">
-      <div class="row">
+      <div class="cert-actions">
         <a id="btn-save" class="primary" download="허공수비_자격증.png">이미지 저장</a>
-        <button id="btn-share" class="ghost">공유하기</button>
+        <button id="btn-share" class="ghost">공유</button>
       </div>
       <button id="btn-home" class="ghost">처음으로</button>
     </div>

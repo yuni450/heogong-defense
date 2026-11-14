@@ -1,6 +1,7 @@
 // 장비 목록 (C 담당). 새 장비는 여기에만 등록하면 툴바·점수에 자동 연결됨.
 // 장비 인터페이스: layout(W,H), reset(), pointerDown/Move/Up(x,y,attempt), update(dt,attempt), live(), result(), draw(ctx)
 import { createFinger } from './finger.js';
+import { createClapper } from './clapper.js';
 import { createCheerBat } from './cheer-bat.js';
 import { createUmbrella } from './umbrella.js';
 import { createSponge } from './sponge.js';
@@ -9,7 +10,8 @@ import { createLaughBoard } from './laugh-board.js';
 import { createBag } from './bag.js';
 
 export const TOOL_DEFS = {
-  finger: { name: '손가락 팅', emoji: '👆', create: createFinger, hint: '‘지금!’ 신호에 한 번 탭! 첫 탭의 타이밍으로 채점해요.', league: 'kbl' },
+  finger: { name: '손가락 팅', emoji: '👆', create: createFinger, hint: '화면을 탭해요.', league: 'kbl' },
+  clapper: { name: '짝짝이', emoji: '', create: createClapper, hint: '화면을 탭해요.', league: 'kbl' },
   cheerBat: { name: '응원배트', emoji: '', create: createCheerBat, hint: '화면을 톡톡 누르면 배트가 딱!', league: 'kbo' },
   umbrella: { name: '회전 우산', emoji: '☂️', create: createUmbrella, hint: '누른 채 원을 그려요' },
   sponge: { name: '스펀지 막대', emoji: '', create: createSponge, hint: '화면을 누른 채 스펀지 막대를 좌우로 흔들어요.' },

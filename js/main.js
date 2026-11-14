@@ -47,7 +47,7 @@ const state = {
   league: 'kbl',
   toolId: Object.keys(TOOL_DEFS)[0],
   inExam: false,
-  attempt: { active: false, time: 0 },
+  attempt: { active: false },
   results: [],
   usage: {}, // 시험 중 장비별 선택 시간
   summary: null,
@@ -94,7 +94,7 @@ function saveBest(rec) {
 }
 function renderBest() {
   const b = loadBest();
-  $('#best').textContent = b ? `🏆 이 기기 최고 기록: ${b.name} · ${b.score}점 (${b.tool})` : '';
+  $('#best').textContent = b ? `최고 기록 ${b.score}점 · ${b.name}` : '';
 }
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -158,7 +158,7 @@ function leaveExam() {
   releaseInput();
   clearTimeout(finishTimer); finishTimer = null;
   state.inExam = false;
-  state.attempt = { active: false, time: 0 };
+  state.attempt = { active: false };
   fx.clear();
 }
 
@@ -235,7 +235,7 @@ function startExam() {
   state.results = [];
   state.usage = Object.fromEntries(Object.keys(tools).map((id) => [id, 0]));
   state.summary = null;
-  state.attempt = { active: true, time: 0 };
+  state.attempt = { active: true };
   nextResultAt = 0;
   selectTool(state.toolId);
   updateHud();
@@ -250,7 +250,6 @@ $('#shot-outcome').addEventListener('click', (e) => {
   releaseInput();
   const made = button.dataset.made === 'yes';
   const r = clamp(Math.max(...Object.values(tools).map((t) => t.result())));
-  state.attempt.time = 0;
   for (const t of Object.values(tools)) t.reset();
 
   // 슛이 들어간 경우 0점. 빗나간 경우에만 측정한 방해력을 반영한다.
@@ -261,7 +260,6 @@ $('#shot-outcome').addEventListener('click', (e) => {
   const cx = W / 2, cy = H * 0.38;
   if (blocked) {
     fx.popup('BLOCK!', cx, cy, { color: theme.accent, size: 64, life: 1.4 });
-    fx.popup('(기분상)', cx, cy + 46, { color: '#fff', size: 18, life: 1.4 });
     fx.burst(cx, cy, theme.accent, 30, 460);
     fx.burst(cx, cy, '#ffffff', 14, 320);
     fx.shake(14);
@@ -286,16 +284,10 @@ $('#shot-outcome').addEventListener('click', (e) => {
 
 function updateHud() {
   const n = state.results.length;
-  const dots = Array.from({ length: SHOTS }, (_, i) => {
-    const r = state.results[i];
-    if (r) return r.blocked ? '●' : '✕';
-    return i === n ? '◉' : '○';
-  }).join(' ');
-  $('#hud-round').textContent = dots;
+  $('#hud-round').textContent = state.inExam ? `${n + 1} / ${SHOTS}` : '채점 중';
   $('#hud-team').textContent = `${LEAGUES[state.team.league].name} · ${state.team.name}`;
   $('#hud-score').textContent = `${state.results.reduce((s, r) => s + r.pts, 0)}점`;
   const action = state.team.league === 'kbo' ? '투구' : '자유투';
-  $('#outcome-title').textContent = state.inExam ? `${n + 1}번째 ${action} 결과` : '채점 중…';
   $('#shot-outcome [data-made="yes"]').textContent = `${action} 성공`;
   $('#shot-outcome [data-made="no"]').textContent = `${action} 실패`;
   for (const button of document.querySelectorAll('#shot-outcome [data-made]')) {
@@ -323,26 +315,17 @@ function finishExam() {
   const isBest = saveBest({ name: state.name, score: s.score, tool: t.name });
   const passed = s.score > 60;
   const madeCount = state.results.filter((r) => r.made).length;
-  const status = $('#cert-status');
-  status.textContent = passed
-    ? '합격! 자격증을 발급받을 수 있습니다.'
-    : '불합격: 60점 이하는 자격증을 발급받을 수 없습니다.';
-  status.className = `cert-status ${passed ? 'pass' : 'fail'}`;
+  $('#btn-cert').hidden = !passed;
   $('#btn-cert').disabled = !passed;
-  $('#btn-cert').textContent = passed ? '자격증 발급받기' : '자격증 발급 불가';
-
-  $('#res-grade').innerHTML = `${s.grade.emoji} ${s.grade.name}<small>${s.grade.line}</small>`;
+  $('#res-grade').textContent = s.grade.name;
   $('#stats').innerHTML = [
     ['응시자', state.name],
-    ['종목', LEAGUES[state.team.league].name],
     ['응원 구단', state.team.name],
-    ['총 수비 시도', `${s.attempts}회`],
     ['허공 방어 성공', `${s.blocks}회`],
     [state.team.league === 'kbo' ? '실제 투구 결과' : '실제 슛 결과', `성공 ${madeCount}회 · 실패 ${s.attempts - madeCount}회`],
     ['방어 성공률', `${s.rate}%`],
-    ['최종 수비 점수', `${s.score}점${isBest ? ' 🏆 최고기록' : ''}`],
+    ['최종 수비 점수', `${s.score}점${isBest ? ' · 최고 기록' : ''}`],
     ['주력 장비', `${t.emoji} ${t.name}`.trim()],
-    ['실제 경기 기여도', '0%'],
   ].map(([k, v]) => `<dt>${k}</dt><dd>${escapeHtml(v)}</dd>`).join('');
   $('#rounds').innerHTML = state.results
     .map((r, i) => `<li class="${r.blocked ? 'ok' : ''}">${i + 1}구<b>${state.team.league === 'kbo' ? '투구' : '슛'} ${r.made ? '성공' : '실패'}</b>${r.pts}점</li>`)
@@ -366,7 +349,7 @@ $('#btn-cert').addEventListener('click', () => {
 
 $('#btn-share').addEventListener('click', async () => {
   const s = state.summary;
-  const text = `[허공수비대] ${s.team} · ${s.name} · ${s.grade.name} ${s.score}점 (방어 성공률 ${s.rate}%) — 실제 경기 기여도 0%`;
+  const text = `[허공수비대] ${s.team} · ${s.name} · ${s.grade.name} ${s.score}점 (방어 성공률 ${s.rate}%)`;
   try {
     const blob = await (await fetch($('#cert-img').src)).blob();
     const file = new File([blob], '허공수비_자격증.png', { type: 'image/png' });
@@ -391,7 +374,7 @@ const fingerCamera = createFingerCameraController({
   createLandmarker: createHandLandmarker,
   getFinger: () => tools.finger,
   getAttempt: () => state.attempt,
-  isEnabled: () => onHud() && state.inExam && !state.pendingResult && state.toolId === 'finger' && !document.hidden,
+  isEnabled: () => onHud() && state.inExam && state.toolId === 'finger' && !document.hidden,
   onMode: (_mode, reason) => {
     const hint = reason === 'loading' ? '손 인식 준비 중… 잠시만 기다려요.'
       : reason === 'model-unavailable' ? '터치 모드 · 손 인식을 불러오지 못했어요. 화면을 탭해요.'
@@ -437,7 +420,6 @@ function frame(now) {
 function step(dt) {
   const att = state.attempt;
   if (att.active) {
-    if (state.toolId === 'finger') att.time += dt;
     state.usage[state.toolId] += dt;
   }
   for (const t of Object.values(tools)) t.update(dt, att);

@@ -5,11 +5,6 @@ import { createFinger } from '../finger.js';
 import { fx } from '../../fx.js';
 import { handFrame } from './finger-fixture.mjs';
 
-function resetTiming(tool) {
-  const random = Math.random;
-  try { Math.random = () => 0.5; tool.reset(); } finally { Math.random = random; }
-}
-
 function arm(detector, start = 0, options = {}) {
   assert.equal(detector.update(handFrame(start, options)), null);
   assert.equal(detector.update(handFrame(start + 40, options)), null);
@@ -76,12 +71,12 @@ test('게임 도구: 연습 효과/시험 점수/탭 중복 차단/터치 복구
   const old = fx.hit, effects = [];
   fx.hit = (...args) => effects.push(args);
   try {
-    const t = createFinger(); t.layout(390, 844); resetTiming(t);
-    const active = { active: true, time: 2.0 }, practice = { active: false };
+    const t = createFinger(); t.layout(390, 844); t.reset();
+    const active = { active: true }, practice = { active: false };
     assert.equal(t.getInputMode(), 'touch'); assert(t.getHint().includes('터치 모드'));
     t.pointerDown(100, 100, practice); assert.equal(t.result(), 0);
-    t.pointerDown(100, 100, active); assert.equal(t.result(), 1);
-    resetTiming(t); t.setInputMode('camera'); assert(t.getHint().includes('카메라'));
+    t.pointerDown(100, 100, active); assert.equal(t.result(), 1 / 6);
+    t.reset(); t.setInputMode('camera'); assert(t.getHint().includes('검지'));
     const gesture = (start, att) => {
       t.acceptHandFrame(handFrame(start), att); t.acceptHandFrame(handFrame(start + 40), att);
       return t.acceptHandFrame(handFrame(start + 100, { open: 1 }), att);
@@ -90,12 +85,12 @@ test('게임 도구: 연습 효과/시험 점수/탭 중복 차단/터치 복구
     const cameraHit = effects.at(-1);
     let before = effects.length;
     t.pointerDown(100, 100, active); assert.equal(effects.length, before); assert.equal(t.result(), 0);
-    assert(gesture(200, active)); assert.equal(t.result(), 1);
+    assert(gesture(200, active)); assert.equal(t.result(), 1 / 6);
     t.acceptHandFrame(handFrame(340), active); t.acceptHandFrame(handFrame(380), active);
-    resetTiming(t); assert.equal(t.result(), 0);
+    t.reset(); assert.equal(t.result(), 0);
     assert.equal(t.acceptHandFrame(handFrame(440, { open: 1 }), active), false);
-    assert(gesture(500, active)); assert.equal(t.result(), 1);
-    assert(gesture(700, practice)); assert.equal(t.result(), 1);
+    assert(gesture(500, active)); assert.equal(t.result(), 1 / 6);
+    assert(gesture(700, practice)); assert.equal(t.result(), 1 / 6);
     t.clearHandGesture(); assert.equal(t.acceptHandFrame(handFrame(900, { open: 1 }), active), false);
     for (let i = 0; i < 10; i++) gesture(1000 + i * 200, active);
     assert.equal(t.live(), 1); assert.equal(t.result(), 1);
@@ -104,6 +99,6 @@ test('게임 도구: 연습 효과/시험 점수/탭 중복 차단/터치 복구
     assert(Math.abs(hit[0] - (point.x * 1280 * scale - (1280 * scale - 390) / 2)) < 1e-6);
     assert(Math.abs(hit[1] - point.y * 844) < 1e-6);
     t.setInputMode('touch'); assert.equal(t.acceptHandFrame(handFrame(4000), active), false);
-    resetTiming(t); t.pointerDown(100, 100, active); assert.equal(t.result(), 1);
+    t.reset(); t.pointerDown(100, 100, active); assert.equal(t.result(), 1 / 6);
   } finally { fx.hit = old; }
 });
