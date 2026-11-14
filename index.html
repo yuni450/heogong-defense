@@ -81,27 +81,20 @@
         <div id="hud-score" class="pill strong">0점</div>
       </div>
       <div id="meter" class="meter">
-        <div class="meter-label"><span id="meter-text">방해력</span><span id="meter-time"></span></div>
+        <div id="meter-text" class="meter-label">방해력</div>
         <div class="bar"><div id="meter-fill" class="fill"></div><div class="line"></div></div>
-        <div class="bar thin"><div id="time-fill" class="fill time"></div></div>
       </div>
     </div>
     <div class="hud-bottom">
       <div id="hud-hint" class="hud-hint"></div>
-      <button id="btn-shot" class="shot-btn">🏀 자유투!</button>
-      <div id="toolbar" class="toolbar"></div>
-    </div>
-    <div id="shot-outcome" class="outcome-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="outcome-title">
-      <div class="outcome-card">
-        <p class="step">실제 자유투 결과 확인</p>
-        <h2 id="outcome-title">공이 들어갔나요?</h2>
-        <p class="outcome-detail">방해력 측정이 완료되었습니다. 실제 슛 결과를 선택해주세요.</p>
+      <div id="shot-outcome" class="outcome-controls" role="group" aria-labelledby="outcome-title">
+        <div id="outcome-title" class="outcome-title" aria-live="polite"></div>
         <div class="outcome-buttons">
-          <button type="button" data-made="yes" class="outcome-made">🏀 들어갔다</button>
-          <button type="button" data-made="no" class="outcome-missed">🛡️ 안 들어갔다</button>
+          <button type="button" data-made="yes" class="outcome-made">성공</button>
+          <button type="button" data-made="no" class="outcome-missed">실패</button>
         </div>
-        <p class="fine">카메라가 득점을 자동 판별하지 않으므로 직접 선택합니다.</p>
       </div>
+      <div id="toolbar" class="toolbar"></div>
     </div>
   </section>
 

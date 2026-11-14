@@ -182,16 +182,11 @@ button, .primary, .ghost {
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 8px 12px 10px;
-  opacity: 0.55;
-  transition: opacity 0.2s;
 }
-.meter.on { opacity: 1; }
 .meter-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
 .bar { position: relative; height: 12px; border-radius: 99px; background: rgba(255, 255, 255, 0.15); overflow: hidden; }
-.bar.thin { height: 5px; margin-top: 6px; }
 .bar .fill { position: absolute; inset: 0 auto 0 0; width: 0; background: #ffd43b; border-radius: 99px; }
 .bar .fill.hot { background: var(--accent); }
-.bar .fill.time { background: #fff; }
 .bar .line { position: absolute; top: 0; bottom: 0; left: 60%; width: 2px; background: #fff; }
 .hud-hint {
   align-self: center;
@@ -204,18 +199,6 @@ button, .primary, .ghost {
   text-align: center;
   max-width: 360px;
 }
-.shot-btn {
-  pointer-events: auto;
-  background: var(--accent);
-  color: #fff;
-  font-size: 20px;
-  font-weight: 900;
-  padding: 14px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-}
-.shot-btn:disabled { background: rgba(10, 14, 30, 0.78); color: var(--muted); }
-.shot-btn:active:not(:disabled) { transform: scale(0.97); }
 .toolbar { display: flex; gap: 8px; pointer-events: auto; }
 .toolbar button {
   flex: 1;
@@ -286,33 +269,11 @@ button, .primary, .ghost {
 .row .primary { padding: 14px; font-size: 16px; }
 
 
-/* 자유투 측정 뒤 실제 득점 여부를 직접 확인 */
-.outcome-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(4, 8, 20, 0.75);
-  pointer-events: auto;
-}
-.outcome-overlay[hidden] { display: none; }
-.outcome-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 26px 20px;
-  border-radius: 22px;
-  background: #141b30;
-  border: 1px solid var(--line);
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-}
-.outcome-card h2 { margin: 8px 0; }
-.outcome-detail { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 20px; }
+.outcome-controls { text-align: center; }
+.outcome-title { font-size: 13px; font-weight: 800; margin-bottom: 6px; }
 .outcome-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .outcome-buttons button {
+  pointer-events: auto;
   padding: 16px 8px;
   border-radius: 14px;
   color: #fff;
@@ -321,7 +282,8 @@ button, .primary, .ghost {
 }
 .outcome-made { background: #b9404d; }
 .outcome-missed { background: #0b8975; }
-.outcome-buttons button:active { transform: scale(0.97); }
+.outcome-buttons button:disabled { opacity: 0.5; }
+.outcome-buttons button:active:not(:disabled) { transform: scale(0.97); }
 .cert-status { font-weight: 800; line-height: 1.5; margin: 8px 0 12px; }
 .cert-status.pass { color: #83e6b0; }
 .cert-status.fail { color: #ffd166; }
