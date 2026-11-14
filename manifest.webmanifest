@@ -1,0 +1,9 @@
+{
+  "name": "허공수비대 — 허공 수비 자격시험",
+  "short_name": "허공수비대",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020"
+}
