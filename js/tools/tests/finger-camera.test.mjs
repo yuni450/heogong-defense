@@ -6,12 +6,17 @@ import { createFinger } from '../finger.js';
 import { fx } from '../../fx.js';
 import { handFrame } from './finger-fixture.mjs';
 
+function resetTiming(tool) {
+  const random = Math.random;
+  try { Math.random = () => 0.5; tool.reset(); } finally { Math.random = random; }
+}
+
 function harness(options = {}) {
   let now = 0, enabled = true, result = { landmarks: [], handedness: [] }, attempt = { active: false };
   let loads = 0, detections = 0, closes = 0, modes = [];
   const video = { readyState: 4, paused: false, ended: false, videoWidth: 1280, videoHeight: 720,
     currentTime: 0, srcObject: { getVideoTracks: () => [{ readyState: 'live' }] } };
-  const finger = createFinger(); finger.layout(390, 844);
+  const finger = createFinger(); finger.layout(390, 844); resetTiming(finger);
   const model = { detectForVideo(v, t) { assert.equal(v, video); assert.equal(t, now); detections++; return result; }, close() { closes++; } };
   const controller = createFingerCameraController({ video, getFinger: () => finger,
     getAttempt: () => attempt, isEnabled: () => enabled, clock: () => now,
@@ -39,13 +44,13 @@ test('선택한 장비에서만 기존 video를 추론, 준비되면 탭 차단,
     h.setEnabled(true); await h.ready(); assert.equal(h.loads, 1); assert.equal(h.finger.getInputMode(), 'camera');
     h.send(handFrame(40)); h.send(handFrame(80)); h.send(handFrame(140, { open: 1 }));
     assert.equal(effects.length, 1); assert.equal(h.finger.result(), 0);
-    h.setAttempt({ active: true });
+    h.setAttempt({ active: true, time: 2.0 });
     h.send(handFrame(180)); h.send(handFrame(220)); h.send(handFrame(280, { open: 1 }));
-    assert.equal(h.finger.result(), 1 / 6);
-    h.finger.pointerDown(100, 100, { active: true }); assert.equal(h.finger.result(), 1 / 6); assert.equal(effects.length, 2);
+    assert.equal(h.finger.result(), 1);
+    h.finger.pointerDown(100, 100, { active: true, time: 2.0 }); assert.equal(h.finger.result(), 1); assert.equal(effects.length, 2);
     h.setAttempt({ active: false });
     h.send(handFrame(320)); h.send(handFrame(360)); h.send(handFrame(420, { open: 1 }));
-    assert.equal(h.finger.result(), 1 / 6); assert.equal(effects.length, 3);
+    assert.equal(h.finger.result(), 1); assert.equal(effects.length, 3);
     const n = h.detections; h.controller.update(); assert.equal(h.detections, n, 'same video frame skipped');
     h.setEnabled(false); h.controller.update(); assert.equal(h.detections, n);
   } finally { h.controller.dispose(); fx.hit = old; }
@@ -55,7 +60,7 @@ test('손 유실·장비 전환·영상 소스 교체 뒤 열린 손으로 재�
   const old = fx.hit; fx.hit = () => {};
   try {
     for (const transition of ['loss', 'selection', 'source', 'multiple']) {
-      const h = harness(); await h.ready(); h.setAttempt({ active: true });
+      const h = harness(); await h.ready(); h.setAttempt({ active: true, time: 2.0 });
       h.send(handFrame(40)); h.send(handFrame(80));
       if (transition === 'loss') h.lose(120);
       if (transition === 'selection') { h.setEnabled(false); h.controller.update(); h.setEnabled(true); }
@@ -66,7 +71,7 @@ test('손 유실·장비 전환·영상 소스 교체 뒤 열린 손으로 재�
       }
       h.send(handFrame(160, { open: 1 })); assert.equal(h.finger.result(), 0, transition);
       h.send(handFrame(200)); h.send(handFrame(240)); h.send(handFrame(300, { open: 1 }));
-      assert.equal(h.finger.result(), 1 / 6, transition); assert.equal(h.loads, 1);
+      assert.equal(h.finger.result(), 1, transition); assert.equal(h.loads, 1);
       h.controller.dispose();
     }
   } finally { fx.hit = old; }
@@ -76,7 +81,7 @@ test('영상 정지/프레임 멈춤은 터치 모드, 재개 시 다시 모아�
   const old = fx.hit; fx.hit = () => {};
   try {
     for (const reason of ['paused', 'stalled', 'ended-track']) {
-      const h = harness(); await h.ready(); h.setAttempt({ active: true });
+      const h = harness(); await h.ready(); h.setAttempt({ active: true, time: 2.0 });
       h.send(handFrame(40)); h.send(handFrame(80));
       if (reason === 'paused') h.video.paused = true;
       if (reason === 'ended-track') h.video.srcObject = { getVideoTracks: () => [{ readyState: 'ended' }] };

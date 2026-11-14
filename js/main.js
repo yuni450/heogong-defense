@@ -222,7 +222,7 @@ function selectTool(id) {
   releaseInput();
   state.toolId = id;
   document.querySelectorAll('#toolbar [data-tool]').forEach((b) => b.classList.toggle('on', b.dataset.tool === id));
-  $('#hud-hint').textContent = TOOL_DEFS[id].hint;
+  $('#hud-hint').textContent = tools[id].getHint?.() ?? TOOL_DEFS[id].hint;
   fx.sound('tick');
 }
 renderTeams();
@@ -336,7 +336,7 @@ function updateMeter() {
   fill.classList.toggle('hot', live >= BLOCK_THRESHOLD);
   $('#time-fill').style.width = att.active ? `${(1 - att.time / ATTEMPT_SEC) * 100}%` : '0%';
   $('#meter-time').textContent = att.active ? `${Math.max(0, ATTEMPT_SEC - att.time).toFixed(1)}초` : `선수가 서면 ${LEAGUES[state.team.league].action} 버튼`;
-  $('#meter-text').textContent = att.active ? '방해력' : '연습 중 (점수 없음)';
+  $('#meter-text').textContent = att.active ? (state.toolId === 'finger' ? '타이밍 정확도' : '방해력') : '연습 중 (점수 없음)';
 }
 
 function mostUsedTool() {

@@ -1,16 +1,16 @@
 # 손가락 팅: A/D 연결 안내
 
-현재 C 변경은 `finger.js`, `finger-gesture.js`, `finger-camera.js`와 테스트다.
-기존 구단 선택·전용 장비·카메라·채점 파일은 변경하지 않았다.
+손가락 도구는 터치와 카메라 제스처에 같은 단발 타이밍 판정을 사용한다.
+기존 구단 선택·전용 장비와 카메라 연결 어댑터를 유지한다.
 **아래 연결 전에는 게임이 터치 모드로 동작한다. 실제 카메라 입력이 이미 연결된 상태가 아니다.**
 
 ## C 구현 계약
 
 기존 장비 인터페이스는 유지한다. 손가락 도구에만 아래 선택적 메서드를 추가했다.
 
-- `setInputMode('camera' | 'touch')`: 모드 변경 시 준비 동작 초기화. camera에서는 pointerDown 효과·점수 모두 차단.
+- `setInputMode('camera' | 'touch')`: 모드 변경 시 준비 동작만 초기화하며 첫 입력 판정과 점수는 유지. camera에서는 pointerDown 효과·점수 모두 차단.
 - `getInputMode()`, `getHint()`: 현재 모드와 안내. 모델 성공 전에는 카메라 안내를 표시하지 않는다.
-- `acceptHandFrame(frame, attempt)`: 팅이면 효과 발생, attempt.active일 때만 1/6 적립. frame=null이면 손 유실.
+- `acceptHandFrame(frame, attempt)`: 연습에서는 팅 효과만 발생. 시험에서는 `attempt.time`(시도 시작 후 초)을 기준으로 첫 팅 한 번만 채점한다. 신호(시작 1.5~2.3초) 후 0.18초까지 100%, 0.65초까지 점차 감소하고 신호 전·시간 초과는 0점이다. 첫 입력을 처리하면 true, 중복/비팅이면 false. frame=null이면 손 유실.
 - `clearHandGesture()`: 점수를 유지하며 준비 동작만 취소. `reset()`은 점수와 준비 동작 모두 초기화.
 
 직접 키포인트를 전달할 때 frame 형식:
@@ -155,7 +155,7 @@ render();
 저장소 루트에서 (새 npm 패키지 없이 Node 내장 테스트 러너):
 
 ```sh
-node --test js/tools/tests/finger-gesture.test.mjs js/tools/tests/finger-camera.test.mjs
+node --test tests/finger-timing.test.mjs js/tools/tests/finger-gesture.test.mjs js/tools/tests/finger-camera.test.mjs
 ```
 
 합성 키포인트와 가짜 MediaPipe/video로 판정·선택/해제·실패 폴백·중복 차단을 확인한다.
@@ -166,7 +166,7 @@ A/D 연결 뒤 `python3 -m http.server 5173`으로 PC 화면과 콘솔 오류를
 1. 손가락 선택 후 모델 성공 시 카메라 모드·카메라 안내로 변경. 다른 장비 선택 시 추론 중지.
 2. 연습에서 손끝 모음 → 검지 튕기기: 팅 효과 1회, 점수 0. 편 채 유지·손 전체 흔들기: 추가 0회.
 3. 손을 모은 뒤 화면 밖으로 뺐다가 편 채 돌아오기: 추가 0회. 다시 모은 뒤 튕기면 1회.
-4. 자유투/투구 시작 후 동일 동작은 1회당 1/6, 카메라 모드에서 화면 탭은 효과·점수 모두 0회.
+4. 자유투/투구 시작 후 ‘지금!’에 맞춘 첫 팅 한 번으로 채점한다. 빠른 입력·연속 팅·터치/카메라 전환으로 재시도할 수 없다. 카메라 모드에서 화면 탭은 효과·점수 모두 0회.
 5. 다음 투구 시작 직전에 손을 모았더라도 초기화 후 다시 모으기 전에는 점수 0회. 3.5초 종료 후 점수 미적립.
 6. 카메라 권한 거절, 모델 URL 실패, 영상 정지 시 터치 모드 표시 및 탭 플레이 가능.
 7. KBL/KBO 구단 전환, 우산·스펀지·전용 장비 조작과 기존 툴바 구성이 유지되는지 확인.

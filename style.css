@@ -231,6 +231,21 @@ button, .primary, .ghost {
 .toolbar .tool-icon { display: block; width: 45px; height: 33.6px; margin: 0 auto; }
 .toolbar button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 25%, rgba(10, 14, 30, 0.8)); }
 
+/* 낮은 가로 화면에서도 중앙의 타이밍 신호를 가리지 않는다. */
+@media (max-height: 499px) and (orientation: landscape) {
+  .hud-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .hud-top .meter { grid-column: 1 / -1; padding: 6px 12px; }
+  .hud-top .pill { padding-block: 6px; }
+  .hud-top .bar { height: 8px; }
+  .hud-top .bar.thin { height: 3px; margin-top: 4px; }
+  .hud-bottom { display: grid; grid-template-columns: 140px minmax(0, 1fr); }
+  .hud-hint { grid-column: 1 / -1; justify-self: center; padding-block: 4px; }
+  .shot-btn { padding: 8px; font-size: 18px; }
+  .toolbar button { padding-block: 4px; }
+  .toolbar button .emo { font-size: 20px; }
+  .toolbar .tool-icon { width: 30px; height: 22.4px; }
+}
+
 /* 성적표 */
 .grade { font-size: 26px; font-weight: 900; margin: 8px 0 14px; color: var(--accent); }
 .grade small { display: block; font-size: 15px; color: var(--muted); font-weight: 600; margin-top: 4px; }
