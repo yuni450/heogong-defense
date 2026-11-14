@@ -8,6 +8,31 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>허공수비대</title>
 <link rel="stylesheet" href="style.css">
+<style>
+/* 종목·구단 선택과 전용 장비 확장의 A 담당 통합 스타일 */
+#league-tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin: 0 0 14px; }
+#league-tabs button { min-width: 0; padding: 12px 4px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: rgba(255,255,255,.06); font-size: 14px; font-weight: 800; white-space: nowrap; }
+#league-tabs button.on { color: #fff; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 24%, #131a2c); }
+#teams { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#teams .opt { min-width: 0; display: flex; align-items: center; gap: 7px; padding: 10px 8px; border-width: 1px; border-radius: 12px; text-align: left; }
+#teams .club-ball { flex: 0 0 28px; width: 28px; height: 28px; }
+#teams .nm { margin: 0; font-size: 13px; line-height: 1.35; word-break: keep-all; }
+#s-team .card { padding: 20px 14px; }
+#s-team h2 { margin-bottom: 12px; }
+#btn-team-back { padding: 10px; font-size: 13px; }
+.hud-club-row { align-items: center; gap: 6px; }
+#hud-team { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12px; padding: 7px 10px; }
+#btn-change-team { pointer-events: auto; flex: 0 0 auto; width: auto; padding: 7px 10px; color: var(--ink); font-size: 12px; }
+#toolbar button { min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+#toolbar button:focus-visible, #league-tabs button:focus-visible, #teams button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+@media (max-width: 350px) {
+  #s-team .card { padding: 16px 10px; }
+  #teams .opt { padding: 9px 5px; gap: 4px; }
+  #teams .nm { font-size: 12px; }
+  #toolbar { gap: 4px; }
+  #toolbar button { font-size: 11px; padding-inline: 2px; }
+}
+</style>
 </head>
 <body>
 <video id="cam" playsinline muted autoplay></video>
@@ -35,13 +60,22 @@
     <div class="card">
       <p class="step">STEP 1</p>
       <h2>응원팀 선택</h2>
-      <div id="teams" class="grid"></div>
+      <div id="league-tabs" role="tablist" aria-label="종목 선택">
+        <button id="tab-kbl" type="button" role="tab" data-league="kbl" aria-selected="true" aria-controls="teams">🏀 농구 KBL</button>
+        <button id="tab-kbo" type="button" role="tab" data-league="kbo" aria-selected="false" aria-controls="teams">⚾ 야구 KBO</button>
+      </div>
+      <div id="teams" class="grid" role="tabpanel" aria-labelledby="tab-kbl"></div>
+      <button id="btn-team-back" class="ghost">이름 입력으로</button>
     </div>
   </section>
 
   <!-- 3. 실기시험 HUD: 카메라 화면 위 오버레이 -->
   <section id="s-hud" class="screen hud">
     <div class="hud-top">
+      <div class="hud-row hud-club-row">
+        <div id="hud-team" class="pill"></div>
+        <button id="btn-change-team" class="pill">구단 변경</button>
+      </div>
       <div class="hud-row">
         <div id="hud-round" class="pill"></div>
         <div id="hud-score" class="pill strong">0점</div>
@@ -80,7 +114,9 @@
       <ol id="rounds" class="rounds"></ol>
       <p id="cert-status" class="cert-status" aria-live="polite"></p>
       <button id="btn-cert" class="primary">자격증 발급받기</button>
-      <button id="btn-retry" class="ghost">재응시</button>
+      <button id="btn-retry" class="ghost">같은 구단으로 재응시</button>
+      <button id="btn-result-team" class="ghost">다른 구단 선택</button>
+      <button id="btn-new-player" class="ghost">새 참가자 접수</button>
     </div>
   </section>
 

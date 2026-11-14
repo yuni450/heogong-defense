@@ -1,6 +1,7 @@
-// 손가락 팅: Canvas 동작 예시. 실제 입력은 손 추적 연결 전까지 기존 탭을 유지한다.
+// 손가락 팅: 키포인트 판정 + 터치 폴백. 기존 #cam 연결은 finger-camera.js 어댑터를 사용한다.
 import { fx, clamp } from '../fx.js';
 import { HIT_GAIN } from './held.js';
+import { createFingerGesture } from './finger-gesture.js';
 
 const WORDS = ['팅!', '팅!!', '티잉!', 'TING!'];
 
@@ -8,16 +9,45 @@ export function createFinger() {
   let W = 0, H = 0;
   let guideTime = 0;
   let hits = 0;
+  let inputMode = 'touch';
+  const gesture = createFingerGesture();
 
   return {
     layout(w, h) {
       W = w; H = h;
+      gesture.reset();
     },
-    reset() { hits = 0; },
+    reset() { hits = 0; gesture.reset(); },
+
+    // 기존 장비 인터페이스에 영향을 주지 않는 선택적 카메라 연결 메서드.
+    setInputMode(mode) {
+      const next = mode === 'camera' ? 'camera' : 'touch';
+      if (inputMode !== next) gesture.reset();
+      inputMode = next;
+    },
+    getInputMode: () => inputMode,
+    getHint: () => inputMode === 'camera'
+      ? '카메라에 손을 비추고, 엄지와 검지를 모았다가 팅!'
+      : '터치 모드 · 화면을 톡톡 탭해요!',
+    clearHandGesture() { gesture.reset(); },
+    acceptHandFrame(frame, att) {
+      if (inputMode !== 'camera') return false;
+      const point = gesture.update(frame);
+      if (!point) return false;
+      // #cam의 object-fit: cover에 맞춰 영상 좌표를 CSS 픽셀로 변환한다.
+      const scale = Math.max(W / frame.width, H / frame.height);
+      const nx = frame.mirrored ? 1 - point.x : point.x;
+      const x = Math.max(0, Math.min(W, nx * frame.width * scale - (frame.width * scale - W) / 2));
+      const y = Math.max(0, Math.min(H, point.y * frame.height * scale - (frame.height * scale - H) / 2));
+      fx.hit(x, y, '팅!', { sound: 'ting' });
+      if (att?.active) hits++;
+      return true;
+    },
 
     pointerDown(px, py, att) {
+      if (inputMode === 'camera') return;
       fx.hit(px, py, WORDS[(Math.random() * WORDS.length) | 0], { sound: 'ting' });
-      if (att.active) hits++;
+      if (att?.active) hits++;
     },
     pointerMove() {},
     pointerUp() {},
@@ -129,6 +159,9 @@ export function createFinger() {
       ctx.fillText('동작 예시', 0, -96);
       ctx.font = '700 12px system-ui, sans-serif';
       ctx.fillText(open < 0.5 ? '엄지와 검지를 모아요' : '검지를 빠르게 펴요', 0, 48);
+      ctx.font = '700 11px system-ui, sans-serif';
+      ctx.fillStyle = '#ffe066';
+      ctx.fillText(inputMode === 'camera' ? '카메라 모드' : '터치 모드 · 화면 탭', 0, 70);
       ctx.restore();
     },
   };
