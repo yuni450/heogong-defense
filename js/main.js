@@ -1,7 +1,8 @@
-import { initCamera } from './camera.js';
+import { createHandLandmarker, initCamera } from './camera.js';
 import { fx, theme, clamp } from './fx.js';
 import { TOOL_DEFS } from './tools/index.js';
 import { drawSpongeStick } from './tools/sponge.js';
+import { createFingerCameraController } from './tools/finger-camera.js';
 import { SHOTS, BLOCK_THRESHOLD, shotPoints, summarize } from './score.js';
 import { renderCertificate } from './certificate.js';
 
@@ -153,6 +154,7 @@ function releaseInput() {
 }
 
 function leaveExam() {
+  fingerCamera.suspend();
   releaseInput();
   clearTimeout(finishTimer); finishTimer = null;
   state.inExam = false;
@@ -215,6 +217,7 @@ $('#toolbar').addEventListener('click', (e) => {
 });
 function selectTool(id) {
   if (!tools[id]) return;
+  fingerCamera.suspend();
   releaseInput();
   state.toolId = id;
   document.querySelectorAll('#toolbar [data-tool]').forEach((b) => b.classList.toggle('on', b.dataset.tool === id));
@@ -383,6 +386,26 @@ $('#btn-new-player').addEventListener('click', newParticipant);
 
 // ---------- 입력: 시험 화면에서만 현재 장비와 한 포인터로 전달 ----------
 const onHud = () => $('#s-hud').classList.contains('active');
+const fingerCamera = createFingerCameraController({
+  video,
+  createLandmarker: createHandLandmarker,
+  getFinger: () => tools.finger,
+  getAttempt: () => state.attempt,
+  isEnabled: () => onHud() && state.inExam && !state.pendingResult && state.toolId === 'finger' && !document.hidden,
+  onMode: (_mode, reason) => {
+    const hint = reason === 'loading' ? '손 인식 준비 중… 잠시만 기다려요.'
+      : reason === 'model-unavailable' ? '터치 모드 · 손 인식을 불러오지 못했어요. 화면을 탭해요.'
+      : tools.finger.getHint();
+    $('#hud-hint').textContent = hint;
+  },
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) fingerCamera.suspend();
+});
+window.addEventListener('pagehide', (event) => {
+  if (event.persisted) fingerCamera.suspend();
+  else fingerCamera.dispose();
+});
 canvas.addEventListener('pointerdown', (e) => {
   if (!onHud() || !state.inExam || activePointerId !== null || e.isPrimary === false) return;
   activePointerId = e.pointerId;
@@ -406,6 +429,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   step(dt);
+  fingerCamera.update();
   render();
   requestAnimationFrame(frame);
 }
