@@ -228,6 +228,7 @@ button, .primary, .ghost {
   font-weight: 700;
 }
 .toolbar button .emo { display: block; font-size: 28px; line-height: 1.2; }
+.toolbar .tool-icon { display: block; width: 45px; height: 33.6px; margin: 0 auto; }
 .toolbar button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 25%, rgba(10, 14, 30, 0.8)); }
 
 /* 성적표 */

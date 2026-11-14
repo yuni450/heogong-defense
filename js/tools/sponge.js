@@ -47,19 +47,74 @@ export function createSponge() {
       bendStart: 0, bendEnd: 0, rigidStart: 1, rigidEnd: 1,
     }),
     drawHead(ctx, rope, { u }) {
-      // 별도 머리 대신 로프 전체를 양끝이 둥근 폼 막대로 그린다.
-      const width = u * 0.044;
-      const xs = rope.pts.map((p) => p.x);
-      const left = Math.min(...xs) - width / 2;
-      const right = Math.max(...xs) + width / 2;
-      const fill = ctx.createLinearGradient(left, 0, right, 0);
-      fill.addColorStop(0, '#ffb51b');
-      fill.addColorStop(0.3, '#ffe347');
-      fill.addColorStop(0.5, '#fff7a3');
-      fill.addColorStop(0.75, '#ffe347');
-      fill.addColorStop(1, '#ffc329');
-      // Rope.draw의 둥근 캡과 흰 외곽선을 그대로 사용한다.
-      rope.draw(ctx, width, fill);
+      const base = rope.pts[0];
+      const tip = rope.tip();
+      drawSpongeStick(ctx, {
+        x: base.x, y: base.y,
+        angle: Math.atan2(tip.y - base.y, tip.x - base.x),
+        length: Math.hypot(tip.x - base.x, tip.y - base.y),
+        width: u * 0.044,
+      });
     },
   });
+}
+
+// 게임 화면과 툴바에서 같은 스펀지 막대 그림을 사용한다.
+export function drawSpongeStick(ctx, { x, y, angle, length, width }) {
+  const half = width / 2;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle + Math.PI / 2);
+  const fill = ctx.createLinearGradient(-half, 0, half, 0);
+  fill.addColorStop(0, '#c97a0b');
+  fill.addColorStop(0.22, '#ffc92e');
+  fill.addColorStop(0.42, '#fff28b');
+  fill.addColorStop(0.7, '#ffdc39');
+  fill.addColorStop(1, '#df9410');
+  ctx.beginPath();
+  ctx.roundRect(-half, -length - half, width, length + width, half);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.save();
+  ctx.clip();
+
+  // 고정된 무늬를 사용해 매 프레임 구멍 위치가 바뀌거나 깜빡이지 않는다.
+  for (let i = 0; i < 64; i++) {
+    const x = (((i * 37) % 97) / 96 - 0.5) * width * 0.88;
+    const y = -length + ((i * 53) % 101) / 100 * (length + half);
+    const radius = width * (0.025 + (i % 3) * 0.012);
+    ctx.beginPath();
+    ctx.ellipse(x, y, radius, radius * 0.72, i, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(139, 84, 7, 0.3)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(x, y + radius * 0.7, radius * 0.8, radius * 0.3, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 210, 0.6)';
+    ctx.fill();
+  }
+
+  // 손잡이 쪽 두 줄의 인쇄 띠도 본체에 붙어 움직인다.
+  ctx.fillStyle = '#b85a14';
+  ctx.fillRect(-half, -length * 0.17, width, width * 0.2);
+  ctx.fillRect(-half, -length * 0.12, width, width * 0.1);
+  ctx.restore();
+
+  // 위쪽 단면은 밝은 폼 색과 작은 기공으로 원통 형태를 드러낸다.
+  ctx.beginPath();
+  ctx.ellipse(0, -length, half * 0.86, width * 0.28, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff3a1';
+  ctx.fill();
+  ctx.strokeStyle = '#d49a21';
+  ctx.lineWidth = Math.max(0.6, width * 0.045);
+  ctx.stroke();
+  ctx.fillStyle = '#cf9b32';
+  for (const [x, y] of [[-0.2, -0.07], [0.16, -0.09], [0.03, 0.11]]) {
+    ctx.beginPath();
+    ctx.ellipse(x * width, -length + y * width, width * 0.045, width * 0.03, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }

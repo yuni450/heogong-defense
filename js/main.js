@@ -1,6 +1,7 @@
 import { initCamera } from './camera.js';
 import { fx, theme, clamp } from './fx.js';
 import { TOOL_DEFS } from './tools/index.js';
+import { drawSpongeStick } from './tools/sponge.js';
 import { SHOTS, BLOCK_THRESHOLD, shotPoints, summarize } from './score.js';
 import { renderCertificate } from './certificate.js';
 
@@ -199,8 +200,18 @@ function rebuildTools() {
   if (!tools[state.toolId]) state.toolId = Object.keys(tools)[0];
   $('#toolbar').innerHTML = Object.keys(tools).map((id) => {
     const d = TOOL_DEFS[id];
-    return `<button data-tool="${id}">${d.emoji ? `<span class="emo">${d.emoji}</span>` : ''}${d.name}</button>`;
+    return `<button data-tool="${id}">${d.emoji || id === 'sponge' ? `<span class="emo">${d.emoji}</span>` : ''}${d.name}</button>`;
   }).join('');
+  // 구단 변경으로 툴바를 재생성할 때도 같은 스펀지 그림을 사용한다.
+  const spongeIcon = document.createElement('canvas');
+  spongeIcon.width = 96;
+  spongeIcon.height = 72;
+  spongeIcon.className = 'tool-icon';
+  spongeIcon.setAttribute('aria-hidden', 'true');
+  const iconCtx = spongeIcon.getContext('2d');
+  drawSpongeStick(iconCtx, { x: 56, y: 62, angle: -Math.PI / 2 - 0.3, length: 49, width: 10 });
+  drawSpongeStick(iconCtx, { x: 40, y: 62, angle: -Math.PI / 2 + 0.3, length: 49, width: 10 });
+  $('#toolbar [data-tool="sponge"] .emo').replaceChildren(spongeIcon);
 }
 $('#toolbar').addEventListener('click', (e) => {
   const b = e.target.closest('[data-tool]');
