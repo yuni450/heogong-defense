@@ -57,6 +57,18 @@
       <button id="btn-shot" class="shot-btn">🏀 자유투!</button>
       <div id="toolbar" class="toolbar"></div>
     </div>
+    <div id="shot-outcome" class="outcome-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="outcome-title">
+      <div class="outcome-card">
+        <p class="step">실제 자유투 결과 확인</p>
+        <h2 id="outcome-title">공이 들어갔나요?</h2>
+        <p class="outcome-detail">방해력 측정이 완료되었습니다. 실제 슛 결과를 선택해주세요.</p>
+        <div class="outcome-buttons">
+          <button type="button" data-made="yes" class="outcome-made">🏀 들어갔다</button>
+          <button type="button" data-made="no" class="outcome-missed">🛡️ 안 들어갔다</button>
+        </div>
+        <p class="fine">카메라가 득점을 자동 판별하지 않으므로 직접 선택합니다.</p>
+      </div>
+    </div>
   </section>
 
   <!-- 4. 성적표 -->
@@ -66,6 +78,7 @@
       <div id="res-grade" class="grade"></div>
       <dl id="stats" class="stats"></dl>
       <ol id="rounds" class="rounds"></ol>
+      <p id="cert-status" class="cert-status" aria-live="polite"></p>
       <button id="btn-cert" class="primary">자격증 발급받기</button>
       <button id="btn-retry" class="ghost">재응시</button>
     </div>

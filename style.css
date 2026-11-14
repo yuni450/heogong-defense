@@ -268,3 +268,45 @@ button, .primary, .ghost {
 .row { display: flex; gap: 10px; }
 .row > * { flex: 1; margin-top: 0; }
 .row .primary { padding: 14px; font-size: 16px; }
+
+
+/* 자유투 측정 뒤 실제 득점 여부를 직접 확인 */
+.outcome-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 8, 20, 0.75);
+  pointer-events: auto;
+}
+.outcome-overlay[hidden] { display: none; }
+.outcome-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 26px 20px;
+  border-radius: 22px;
+  background: #141b30;
+  border: 1px solid var(--line);
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.outcome-card h2 { margin: 8px 0; }
+.outcome-detail { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 20px; }
+.outcome-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.outcome-buttons button {
+  padding: 16px 8px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+}
+.outcome-made { background: #b9404d; }
+.outcome-missed { background: #0b8975; }
+.outcome-buttons button:active { transform: scale(0.97); }
+.cert-status { font-weight: 800; line-height: 1.5; margin: 8px 0 12px; }
+.cert-status.pass { color: #83e6b0; }
+.cert-status.fail { color: #ffd166; }
+.primary:disabled { cursor: not-allowed; box-shadow: none; background: #586073; color: #d5d8e4; }
