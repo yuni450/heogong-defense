@@ -6,6 +6,6 @@ import { createSponge } from './sponge.js';
 
 export const TOOL_DEFS = {
   finger: { name: '손가락 팅', emoji: '👆', create: createFinger, hint: '화면 속 공이나 슈터를 톡톡 탭! 팅!' },
-  umbrella: { name: '회전 우산', emoji: '☂️', create: createUmbrella, hint: '화면을 누른 채 우산을 휙휙 휘둘러요' },
-  sponge: { name: '스펀지 응원', emoji: '🧽', create: createSponge, hint: '화면을 누른 채 스펀지를 마구 흔들어요' },
+  umbrella: { name: '회전 우산', emoji: '☂️', create: createUmbrella, hint: '누른 채 원을 그려요' },
+  sponge: { name: '스펀지 막대', emoji: '', create: createSponge, hint: '화면을 누른 채 스펀지 막대를 좌우로 흔들어요.' },
 };

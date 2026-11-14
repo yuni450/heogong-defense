@@ -1,15 +1,51 @@
-// ☂️ 회전 우산: 손잡이를 잡고 휙휙 휘두르면 '휘릭!'. 우산은 늘 빙글빙글 돌고, 세게 휘두를수록 더 빨리 돈다.
+// ☂️ 회전 우산: 원형 궤적을 따라 돌리면 회전 가속과 효과.
 import { createHeld } from './held.js';
 import { theme } from '../fx.js';
 
-const PANELS = 8;
+const SPIRAL_COLORS = ['#ff405d', '#ff9f1c', '#ffe347', '#31c98b', '#28b9ed', '#7657ed'];
 
 export function createUmbrella() {
   return createHeld({
     homeY: 0.74,
+    createGesture(u) {
+      let x, y, vx = 0, vy = 0, turn = 0, distance = 0;
+      let minX, maxX, minY, maxY;
+      const reset = (px, py) => {
+        x = minX = maxX = px; y = minY = maxY = py;
+        vx = vy = turn = distance = 0;
+      };
+      return {
+        reset,
+        move(px, py) {
+          const dx = px - x, dy = py - y;
+          const length = Math.hypot(dx, dy);
+          // 작은 포인터 떨림은 모아서 처리한다 (CSS 픽셀).
+          if (length < u * 0.008) return false;
+          if (vx || vy) {
+            const angle = Math.atan2(vx * dy - vy * dx, vx * dx + vy * dy);
+            // 직선 왕복의 급반전은 회전으로 세지 않는다.
+            if (Math.abs(angle) > 2 || (turn * angle < 0 && Math.abs(angle) > 0.35)) {
+              reset(x, y);
+            } else {
+              turn += angle;
+            }
+          }
+          distance += length;
+          minX = Math.min(minX, px); maxX = Math.max(maxX, px);
+          minY = Math.min(minY, py); maxY = Math.max(maxY, py);
+          x = px; y = py; vx = dx; vy = dy;
+          // 약 1/6바퀴부터 반응. 양 축 이동이 있어야 원형 입력이다.
+          if (Math.abs(turn) < 1 || distance < u * 0.04 ||
+              maxX - minX < u * 0.018 || maxY - minY < u * 0.018) return false;
+          turn = distance = 0;
+          minX = maxX = x; minY = maxY = y;
+          return true;
+        },
+      };
+    },
     crackSpeed: 0.05,
     sound: 'crack',
-    words: ['휘릭!', '휘리릭!', '빙글!', '촤악!', '휙!'],
+    words: ['휘릭!'],
     stickWidth: 0.018,
     stickColor: '#222',
     rope: (u) => ({
@@ -36,68 +72,63 @@ export function createUmbrella() {
       ctx.stroke();
       ctx.restore();
 
-      // 캐노피: 막대 끝이 꼭지, 막대 방향으로 펼쳐진 돔
+      // 정면 우산: 막대 끝을 면의 중심으로 삼아 나선 전체를 회전한다.
       const tip = rope.tip();
-      const R = u * 0.2, h = u * 0.1;
+      const R = u * 0.24;
+      const sector = Math.PI * 2 / SPIRAL_COLORS.length;
+      const steps = 36;
+      const twist = 2.5;
       ctx.save();
       ctx.translate(tip.x, tip.y);
-      ctx.rotate(rope.tipAngle() + Math.PI / 2);
-      const dome = () => {
+      ctx.rotate(spin);
+      const rim = () => {
         ctx.beginPath();
-        ctx.ellipse(0, h, R, h, 0, Math.PI, Math.PI * 2);
-        // 아래쪽 물결 테두리
-        const n = PANELS;
-        for (let i = 0; i < n; i++) {
-          const x0 = R - (i * 2 * R) / n;
-          const x1 = R - ((i + 1) * 2 * R) / n;
-          ctx.quadraticCurveTo((x0 + x1) / 2, h - h * 0.22, x1, h);
-        }
+        ctx.arc(0, 0, R, 0, Math.PI * 2);
         ctx.closePath();
       };
-      dome();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 9;
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-
-      // 회전하는 줄무늬 (앞면만 보이게)
-      ctx.save();
-      dome();
-      ctx.clip();
+      rim();
       ctx.fillStyle = '#fff';
-      ctx.fillRect(-R, 0, R * 2, h * 1.2);
-      for (let i = 0; i < PANELS; i++) {
-        if (i % 2) continue;
-        const a0 = spin + (i * Math.PI * 2) / PANELS;
-        const a1 = a0 + (Math.PI * 2) / PANELS;
-        if (Math.cos((a0 + a1) / 2) < -0.2) continue;
-        const x0 = Math.sin(a0) * R, x1 = Math.sin(a1) * R;
-        ctx.fillStyle = theme.accent;
-        ctx.fillRect(Math.min(x0, x1), 0, Math.abs(x1 - x0), h * 1.2);
-      }
-      // 살대
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < PANELS; i++) {
-        const a = spin + (i * Math.PI * 2) / PANELS;
-        if (Math.cos(a) < 0) continue;
-        const x = Math.sin(a) * R;
+      ctx.fill();
+
+      // 휘어진 두 경계 사이를 채워 굵고 끊김 없는 다색 나선을 만든다.
+      for (let i = 0; i < SPIRAL_COLORS.length; i++) {
+        const phase = i * sector;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.quadraticCurveTo(x * 0.8, h * 0.2, x, h);
-        ctx.stroke();
+        for (let j = 1; j <= steps; j++) {
+          const t = j / steps, r = R * t;
+          const a = phase + twist * t;
+          ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        ctx.arc(0, 0, R, phase + twist, phase + sector + twist);
+        for (let j = steps - 1; j >= 0; j--) {
+          const t = j / steps, r = R * t;
+          const a = phase + sector + twist * t;
+          ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        ctx.closePath();
+        ctx.fillStyle = SPIRAL_COLORS[i];
+        ctx.fill();
       }
-      ctx.restore();
 
-      dome();
-      ctx.strokeStyle = '#111';
-      ctx.lineWidth = 3;
+      // 어떤 카메라 배경 위에서도 읽히는 흰 테두리와 진한 외곽선.
+      rim();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = u * 0.025;
       ctx.stroke();
-      // 꼭지
-      ctx.fillStyle = '#111';
+      rim();
+      ctx.strokeStyle = '#20202b';
+      ctx.lineWidth = u * 0.007;
+      ctx.stroke();
+
+      // 우산 꼭지: 회전축을 명확하게 표시한다.
       ctx.beginPath();
-      ctx.arc(0, -3, u * 0.012, 0, Math.PI * 2);
+      ctx.arc(0, 0, u * 0.022, 0, Math.PI * 2);
+      ctx.fillStyle = theme.accent;
       ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = u * 0.008;
+      ctx.stroke();
       ctx.restore();
     },
   });
